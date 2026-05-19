@@ -32,6 +32,8 @@ import androidx.fragment.app.Fragment;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TerminalFragment extends Fragment implements ServiceConnection, SerialListener {
 
@@ -45,7 +47,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private TextUtil.HexWatcher hexWatcher;
 
     // ← NEW: UI elements
-    private TextView tvO2, tvFlow, tvTemp, tvStatus, tvLive;
+    private TextView tvO2, tvFlow, tvTemp, tvStatus, tvLive, tvBattery;
     private StringBuilder dataBuffer = new StringBuilder();
 
     private Connected connected = Connected.False;
@@ -151,6 +153,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         tvTemp   = view.findViewById(R.id.tvTemp);
         tvStatus = view.findViewById(R.id.tvStatus);
         tvLive   = view.findViewById(R.id.tvLive);
+        tvBattery = view.findViewById(R.id.tvBattery);
 
         return view;
     }
@@ -259,12 +262,19 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
     // ← NEW: parse data and update UI cards
     private void parseAndUpdateUI(String line) {
+        if (line.contains("ERR")) return;
         try {
             String[] parts = line.trim().split("\\s{2,}");
             if (parts.length >= 3) {
                 tvO2.setText(parts[0].replace("%Vol", "").trim());
                 tvFlow.setText(parts[1].replace("L/min", "").trim());
                 tvTemp.setText(parts[2].replace("C", "").trim());
+            }
+            if (parts.length >= 4) {
+                Matcher m = Pattern.compile("\\(?\\d+%\\)?").matcher(parts[3]);
+                if (m.find()) {
+                    tvBattery.setText("🔋 " + m.group());
+                }
             }
         } catch (Exception ignored) {}
     }

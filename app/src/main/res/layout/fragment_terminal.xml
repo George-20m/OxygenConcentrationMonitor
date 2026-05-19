@@ -38,6 +38,16 @@
                 android:textSize="12sp"
                 android:textColor="#3B6D11"
                 android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvBattery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔋 ---"
+                android:textSize="14sp"
+                android:textColor="#888888"
+                android:layout_marginStart="12dp"
+                android:textStyle="bold"/>
         </LinearLayout>
 
         <TextView
