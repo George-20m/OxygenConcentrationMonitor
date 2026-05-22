@@ -271,9 +271,17 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                 tvTemp.setText(parts[2].replace("C", "").trim());
             }
             if (parts.length >= 4) {
-                Matcher m = Pattern.compile("\\(?\\d+%\\)?").matcher(parts[3]);
+                Matcher m = Pattern.compile("\\(?(\\d+)%\\)?").matcher(parts[3]);
                 if (m.find()) {
+                    int pct = Integer.parseInt(m.group(1));
                     tvBattery.setText("🔋 " + m.group());
+                    if (pct < 30) {
+                        tvBattery.setTextColor(getResources().getColor(R.color.battery_red));
+                    } else if (pct < 60) {
+                        tvBattery.setTextColor(getResources().getColor(R.color.battery_orange));
+                    } else {
+                        tvBattery.setTextColor(getResources().getColor(R.color.battery_green));
+                    }
                 }
             }
         } catch (Exception ignored) {}
