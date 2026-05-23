@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">O2 Monitor</string>
+    <string name="app_name">OxyLife</string>
     <string name="devices">Bluetooth LE Devices</string>
 
     <string name="bluetooth_permission_title">Bluetooth permission</string>

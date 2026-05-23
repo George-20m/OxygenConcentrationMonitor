@@ -28,10 +28,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-
-import de.kai_morich.simple_bluetooth_le_terminal.SpeedometerView;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -51,8 +48,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
     // ← NEW: UI elements
     private TextView tvO2, tvFlow, tvTemp, tvStatus, tvLive, tvBattery;
-    private CardView o2Card;
-    private SpeedometerView speedometerView;
     private StringBuilder dataBuffer = new StringBuilder();
 
     private Connected connected = Connected.False;
@@ -67,7 +62,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
+        setHasOptionsMenu(false);
         setRetainInstance(true);
         deviceAddress = getArguments().getString("device");
     }
@@ -159,32 +154,62 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         tvStatus = view.findViewById(R.id.tvStatus);
         tvLive   = view.findViewById(R.id.tvLive);
         tvBattery = view.findViewById(R.id.tvBattery);
-        o2Card   = view.findViewById(R.id.o2Card);
-        speedometerView = view.findViewById(R.id.speedometerView);
 
         return view;
     }
 
-    private void setO2Alert(boolean alert) {
-        int color = alert ? 0xFFFF3333 : 0xFF02799A;
-        if (o2Card != null) o2Card.setCardBackgroundColor(color);
-    }
-
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        menu.clear();
-        menu.add(0, R.id.action_settings, 0, "Settings")
-            .setIcon(android.R.drawable.ic_menu_manage)
-            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        inflater.inflate(R.menu.menu_terminal, menu);
+    }
+
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        menu.findItem(R.id.hex).setChecked(hexEnabled);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            menu.findItem(R.id.backgroundNotification).setChecked(service != null && service.areNotificationsEnabled());
+        } else {
+            menu.findItem(R.id.backgroundNotification).setChecked(true);
+            menu.findItem(R.id.backgroundNotification).setEnabled(false);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_settings) {
-            startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));
+        int id = item.getItemId();
+        if (id == R.id.clear) {
+            receiveText.setText("");
             return true;
+        } else if (id == R.id.newline) {
+            String[] newlineNames = getResources().getStringArray(R.array.newline_names);
+            String[] newlineValues = getResources().getStringArray(R.array.newline_values);
+            int pos = java.util.Arrays.asList(newlineValues).indexOf(newline);
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Newline");
+            builder.setSingleChoiceItems(newlineNames, pos, (dialog, item1) -> {
+                newline = newlineValues[item1];
+                dialog.dismiss();
+            });
+            builder.create().show();
+            return true;
+        } else if (id == R.id.hex) {
+            hexEnabled = !hexEnabled;
+            sendText.setText("");
+            hexWatcher.enable(hexEnabled);
+            sendText.setHint(hexEnabled ? "HEX mode" : "");
+            item.setChecked(hexEnabled);
+            return true;
+        } else if (id == R.id.backgroundNotification) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!service.areNotificationsEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 0);
+                } else {
+                    showNotificationSettings();
+                }
+            }
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     /*
@@ -241,13 +266,9 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         try {
             String[] parts = line.trim().split("\\s{2,}");
             if (parts.length >= 3) {
-                float o2Val = Float.parseFloat(parts[0].replace("%Vol", "").trim());
-                tvO2.setText(String.valueOf((int)o2Val));
+                tvO2.setText(parts[0].replace("%Vol", "").trim());
                 tvFlow.setText(parts[1].replace("L/min", "").trim());
                 tvTemp.setText(parts[2].replace("C", "").trim());
-                getActivity().runOnUiThread(() -> setO2Alert(o2Val < 80));
-                float finalO2 = o2Val;
-                getActivity().runOnUiThread(() -> { if (speedometerView != null) speedometerView.setValue(finalO2); });
             }
             if (parts.length >= 4) {
                 Matcher m = Pattern.compile("\\(?(\\d+)%\\)?").matcher(parts[3]);
