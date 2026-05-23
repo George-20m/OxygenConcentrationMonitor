@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5">
@@ -10,68 +10,168 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- App Title -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="OxyLife"
-            android:textSize="32sp"
+            android:textSize="40sp"
             android:textStyle="bold"
             android:textColor="#02799A"
             android:gravity="center"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="4dp"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Portable Oxygen Concentrator Monitor"
+            android:text="Portable Oxygen Concentrator"
             android:textSize="14sp"
             android:textColor="#888888"
             android:gravity="center"
             android:layout_marginBottom="32dp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="About This App"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="OxyLife connects to your portable oxygen concentrator via Bluetooth and displays real-time data including oxygen purity, flow rate, temperature, and battery level. Designed to give patients and caregivers immediate visibility into device performance."
-            android:textSize="14sp"
-            android:textColor="#444444"
-            android:lineSpacingMultiplier="1.5"
-            android:layout_marginBottom="24dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Inspiration"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Built on the open-source SimpleBluetoothLeTerminal by Kai Morich, adapted for real-time respiratory monitoring."
-            android:textSize="14sp"
-            android:textColor="#444444"
-            android:lineSpacingMultiplier="1.5"
+        <!-- Divider -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="3dp"
+            android:background="#02799A"
+            android:layout_gravity="center"
             android:layout_marginBottom="32dp"/>
 
+        <!-- Mission -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Version 1.0"
+            android:text="OUR MISSION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Access to oxygen should not be a privilege. OxyLife was born from the belief that life-saving medical technology can be open, affordable, and buildable by anyone — anywhere in the world."
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:lineSpacingMultiplier="1.7"
+            android:layout_marginBottom="28dp"/>
+
+        <!-- How it works -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="HOW IT WORKS"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="The device uses Pressure Swing Adsorption (PSA) — the same core technology used in clinical-grade oxygen concentrators. Ambient air is drawn in and passed through zeolite sieve beds that selectively trap nitrogen, allowing concentrated oxygen to accumulate in a buffer tank and flow to the patient.\n\nOur build is intentionally minimal: two zeolite columns, one buffer tank, and three solenoid valves — stripping everything down to what actually matters. Portable. Repairable. Real."
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:lineSpacingMultiplier="1.7"
+            android:layout_marginBottom="28dp"/>
+
+        <!-- The App -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="THE APP"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="OxyLife connects to the concentrator over Bluetooth and gives caregivers and operators a real-time window into the machine. Oxygen purity, flow rate, temperature, and battery level — all visible at a glance, with instant alerts when readings fall outside safe ranges."
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:lineSpacingMultiplier="1.7"
+            android:layout_marginBottom="28dp"/>
+
+        <!-- Inspiration -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="INSPIRATION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="This project draws inspiration from OxiKit — an open-source oxygen concentrator design validated by Tata Consulting Engineers during the COVID-19 crisis to produce 20 LPM at 94% concentration using fully local components. Their work proved that communities do not have to wait for supply chains or budgets to breathe.\n\nWe took that spirit and made it smaller, simpler, and smarter."
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:lineSpacingMultiplier="1.7"
+            android:layout_marginBottom="28dp"/>
+
+        <!-- Built by -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="BUILT BY"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="[Student Name 1]\n[Student Name 2]"
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:lineSpacingMultiplier="1.7"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="[University Name] · [Course Name]"
+            android:textSize="13sp"
+            android:textColor="#888888"
+            android:lineSpacingMultiplier="1.6"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Version -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="OxyLife v1.0"
             android:textSize="12sp"
             android:textColor="#AAAAAA"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Open source. Built with purpose."
+            android:textSize="11sp"
+            android:textColor="#BBBBBB"
+            android:gravity="center"
+            android:layout_marginBottom="8dp"/>
 
     </LinearLayout>
 </ScrollView>
