@@ -37,6 +37,9 @@ public class SettingsFragment extends Fragment {
         updateConnectionUI(tvConnectStatus, connectRow, disconnectRow);
 
         connectRow.setOnClickListener(v -> {
+            if (requireActivity().getSupportFragmentManager().findFragmentByTag("devices") != null) {
+                return;
+            }
             requireActivity().getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment, new DevicesFragment(), "devices")
                 .addToBackStack(null)
