@@ -72,7 +72,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         setRetainInstance(true);
-        deviceAddress = getArguments().getString("device");
+        if (getArguments() != null)
+            deviceAddress = getArguments().getString("device");
     }
 
     @Override
@@ -202,6 +203,10 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
      * Serial + UI
      */
     private void connect() {
+        if (deviceAddress == null) {
+            if (tvStatus != null) tvStatus.setText("Go to Settings to connect a device");
+            return;
+        }
         try {
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
@@ -388,5 +393,24 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         tvStatus.setText("Connection lost");      // ← NEW
         tvLive.setVisibility(View.GONE);          // ← NEW
         disconnect();
+    }
+
+    public void connectTo(String address) {
+        this.deviceAddress = address;
+        if (connected != Connected.False)
+            disconnect();
+        connect();
+    }
+
+    public void disconnectFromSettings() {
+        if (connected != Connected.False)
+            disconnect();
+        deviceAddress = null;
+        if (tvStatus != null) tvStatus.setText("Disconnected");
+        if (tvLive != null) tvLive.setVisibility(View.GONE);
+    }
+
+    public boolean isConnected() {
+        return connected == Connected.True;
     }
 }

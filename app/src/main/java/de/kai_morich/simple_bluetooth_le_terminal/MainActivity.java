@@ -2,71 +2,82 @@ package de.kai_morich.simple_bluetooth_le_terminal;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
+public class MainActivity extends AppCompatActivity {
+
+    private TerminalFragment terminalFragment;
+    private AlertsFragment alertsFragment;
+    private SettingsFragment settingsFragment;
+    private AboutFragment aboutFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportFragmentManager().addOnBackStackChangedListener(this);
-        if (savedInstanceState == null)
-            getSupportFragmentManager().beginTransaction().add(R.id.fragment, new DevicesFragment(), "devices").commit();
-        else
-            onBackStackChanged();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
+        terminalFragment = new TerminalFragment();
+        alertsFragment = new AlertsFragment();
+        settingsFragment = new SettingsFragment();
+        aboutFragment = new AboutFragment();
+
+        getSupportFragmentManager().beginTransaction()
+            .add(R.id.fragment, terminalFragment, "terminal")
+            .add(R.id.fragment, alertsFragment, "alerts")
+            .add(R.id.fragment, settingsFragment, "settings")
+            .add(R.id.fragment, aboutFragment, "about")
+            .hide(alertsFragment)
+            .hide(settingsFragment)
+            .hide(aboutFragment)
+            .commit();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                showTab(terminalFragment);
                 return true;
             } else if (id == R.id.nav_alerts) {
-                Fragment current = getSupportFragmentManager().findFragmentByTag("alerts");
-                if (current == null || !current.isVisible()) {
-                    getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment, new AlertsFragment(), "alerts")
-                        .addToBackStack(null)
-                        .commit();
-                }
-                return true;
-            } else if (id == R.id.nav_about) {
-                Fragment current = getSupportFragmentManager().findFragmentByTag("about");
-                if (current == null || !current.isVisible()) {
-                    getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment, new AboutFragment(), "about")
-                        .addToBackStack(null)
-                        .commit();
-                }
+                showTab(alertsFragment);
                 return true;
             } else if (id == R.id.nav_settings) {
-                Fragment current = getSupportFragmentManager().findFragmentByTag("settings");
-                if (current == null || !current.isVisible()) {
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.fragment, new SettingsFragment(), "settings")
-                            .addToBackStack(null)
-                            .commit();
-                }
+                showTab(settingsFragment);
+                return true;
+            } else if (id == R.id.nav_about) {
+                showTab(aboutFragment);
                 return true;
             }
             return false;
         });
     }
 
-    @Override
-    public void onBackStackChanged() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+    private void showTab(Fragment target) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        for (Fragment f : getSupportFragmentManager().getFragments()) {
+            if (f == target) ft.show(f);
+            else ft.hide(f);
+        }
+        ft.commit();
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
+    public void connectDevice(String address) {
+        terminalFragment.connectTo(address);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+    }
+
+    public void disconnectDevice() {
+        terminalFragment.disconnectFromSettings();
+    }
+
+    public boolean isConnected() {
+        return terminalFragment != null && terminalFragment.isConnected();
     }
 }

@@ -11,6 +11,79 @@
         android:padding="24dp">
 
 
+        <!-- Connection -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CONNECTION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage your Bluetooth connection"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="12dp"/>
+
+        <LinearLayout
+            android:id="@+id/connectRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_white"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvConnectAction"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Connect to Device"
+                android:textSize="14sp"
+                android:textColor="#02799A"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvConnectStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● Not connected"
+                android:textSize="12sp"
+                android:textColor="#AAAAAA"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/disconnectRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_white"
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Disconnect"
+                android:textSize="14sp"
+                android:textColor="#E53935"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
         <!-- Units -->
         <TextView
             android:layout_width="match_parent"
@@ -25,7 +98,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tap to toggle between units"
+            android:text="Select your preferred units"
             android:textSize="12sp"
             android:textColor="#888888"
             android:layout_marginBottom="12dp"/>
@@ -47,19 +120,10 @@
                 android:textSize="14sp"
                 android:textColor="#333333"/>
 
-            <TextView
-                android:id="@+id/tempUnitToggle"
+            <Spinner
+                android:id="@+id/tempUnitSpinner"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="°C"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#02799A"
-                android:background="#E8F5FA"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"/>
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
@@ -79,19 +143,10 @@
                 android:textSize="14sp"
                 android:textColor="#333333"/>
 
-            <TextView
-                android:id="@+id/flowUnitToggle"
+            <Spinner
+                android:id="@+id/flowUnitSpinner"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="L/min"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#02799A"
-                android:background="#E8F5FA"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"/>
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <!-- Keep Screen On -->

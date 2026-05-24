@@ -288,10 +288,10 @@ public class DevicesFragment extends ListFragment {
     public void onListItemClick(@NonNull ListView l, @NonNull View v, int position, long id) {
         stopScan();
         BluetoothUtil.Device device = listItems.get(position-1);
-        Bundle args = new Bundle();
-        args.putString("device", device.getDevice().getAddress());
-        Fragment fragment = new TerminalFragment();
-        fragment.setArguments(args);
-        getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();
+        String address = device.getDevice().getAddress();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).connectDevice(address);
+        }
+        getParentFragmentManager().popBackStack();
     }
 }

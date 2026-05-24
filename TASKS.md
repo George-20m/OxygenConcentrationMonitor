@@ -1,123 +1,283 @@
-# OxyLife – TASKS.md (Round 4)
-# Read this entire file first, then execute each task in order.
-# After each task confirm what you did before moving to the next one.
-# Do NOT skip ahead. Do NOT touch any file not mentioned in the task.
-# These files are COMPLETELY OFF LIMITS — never touch them:
-#   SerialService.java, SerialSocket.java, SerialListener.java,
-#   BluetoothUtil.java, TextUtil.java, Constants.java, DevicesFragment.java,
-#   SpeedometerView.java, AlertsFragment.java, AboutFragment.java
+# OxyLife – TASKS.md (Round 6 - Architecture Fix)
+# Read this entire file first before doing anything.
+# Execute each task in order. Confirm after each one before continuing.
+# Do NOT touch: SerialService.java, SerialSocket.java, SerialListener.java,
+#   BluetoothUtil.java, TextUtil.java, Constants.java, SpeedometerView.java,
+#   AlertsFragment.java, AboutFragment.java, fragment_terminal.xml
 
 ---
 
-## TASK 1 — Fix bottom nav icons to match the design
+## TASK 1 — Replace MainActivity.java entirely
 
-File: app/src/main/res/menu/menu_bottom_nav.xml
+Replace the entire content of:
+app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/MainActivity.java
 
-Replace the entire content with:
+With exactly this:
 
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_home"
-        android:icon="@android:drawable/ic_menu_home"
-        android:title="Home"/>
-    <item
-        android:id="@+id/nav_alerts"
-        android:icon="@android:drawable/ic_dialog_alert"
-        android:title="Alerts"/>
-    <item
-        android:id="@+id/nav_settings"
-        android:icon="@android:drawable/ic_menu_preferences"
-        android:title="Settings"/>
-    <item
-        android:id="@+id/nav_about"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="About"/>
-</menu>
+package de.kai_morich.simple_bluetooth_le_terminal;
 
-Do not touch any other file.
-Confirm the change and say "Task 1 complete".
+import android.os.Bundle;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class MainActivity extends AppCompatActivity {
+
+    private TerminalFragment terminalFragment;
+    private AlertsFragment alertsFragment;
+    private SettingsFragment settingsFragment;
+    private AboutFragment aboutFragment;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+
+        terminalFragment = new TerminalFragment();
+        alertsFragment = new AlertsFragment();
+        settingsFragment = new SettingsFragment();
+        aboutFragment = new AboutFragment();
+
+        getSupportFragmentManager().beginTransaction()
+            .add(R.id.fragment, terminalFragment, "terminal")
+            .add(R.id.fragment, alertsFragment, "alerts")
+            .add(R.id.fragment, settingsFragment, "settings")
+            .add(R.id.fragment, aboutFragment, "about")
+            .hide(alertsFragment)
+            .hide(settingsFragment)
+            .hide(aboutFragment)
+            .commit();
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                showTab(terminalFragment);
+                return true;
+            } else if (id == R.id.nav_alerts) {
+                showTab(alertsFragment);
+                return true;
+            } else if (id == R.id.nav_settings) {
+                showTab(settingsFragment);
+                return true;
+            } else if (id == R.id.nav_about) {
+                showTab(aboutFragment);
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void showTab(Fragment target) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        for (Fragment f : getSupportFragmentManager().getFragments()) {
+            if (f == target) ft.show(f);
+            else ft.hide(f);
+        }
+        ft.commit();
+    }
+
+    public void connectDevice(String address) {
+        terminalFragment.connectTo(address);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav.setSelectedItemId(R.id.nav_home);
+    }
+
+    public void disconnectDevice() {
+        terminalFragment.disconnectFromSettings();
+    }
+
+    public boolean isConnected() {
+        return terminalFragment != null && terminalFragment.isConnected();
+    }
+}
+
+Confirm this file was replaced and say "Task 1 complete".
 
 ---
 
-## TASK 2 — Fix SettingsFragment to use Spinners instead of TextViews
+## TASK 2 — Add public methods to TerminalFragment
 
-The current SettingsFragment.java still uses tempUnitToggle and flowUnitToggle TextViews.
-The current fragment_settings.xml also still has these as TextViews.
-We need to replace both with Spinners.
+File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/TerminalFragment.java
 
-### 2A — Update fragment_settings.xml
+CHANGE 1 — Fix the null crash in onCreate.
+Find:
+deviceAddress = getArguments().getString("device");
+Replace with:
+if (getArguments() != null)
+deviceAddress = getArguments().getString("device");
+
+CHANGE 2 — Fix connect() to handle null deviceAddress gracefully.
+Find the start of the connect() method:
+private void connect() {
+try {
+BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+Replace with:
+private void connect() {
+if (deviceAddress == null) {
+if (tvStatus != null) tvStatus.setText("Go to Settings to connect a device");
+return;
+}
+try {
+BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+CHANGE 3 — Add these 3 public methods to the class.
+Add them just before the final closing brace of the class:
+
+    public void connectTo(String address) {
+        this.deviceAddress = address;
+        if (connected != Connected.False)
+            disconnect();
+        connect();
+    }
+
+    public void disconnectFromSettings() {
+        if (connected != Connected.False)
+            disconnect();
+        deviceAddress = null;
+        if (tvStatus != null) tvStatus.setText("Disconnected");
+        if (tvLive != null) tvLive.setVisibility(View.GONE);
+    }
+
+    public boolean isConnected() {
+        return connected == Connected.True;
+    }
+
+Do not touch any other part of TerminalFragment.java.
+Confirm all 3 changes and say "Task 2 complete".
+
+---
+
+## TASK 3 — Fix DevicesFragment to use the existing TerminalFragment
+
+Currently DevicesFragment.onListItemClick() creates a brand new TerminalFragment
+and replaces everything. We need it to call MainActivity.connectDevice() instead.
+
+File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/DevicesFragment.java
+
+Find the entire onListItemClick method:
+@Override
+public void onListItemClick(@NonNull ListView l, @NonNull View v, int position, long id) {
+stopScan();
+BluetoothUtil.Device device = listItems.get(position-1);
+Bundle args = new Bundle();
+args.putString("device", device.getDevice().getAddress());
+Fragment fragment = new TerminalFragment();
+fragment.setArguments(args);
+getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();
+}
+
+Replace it with:
+@Override
+public void onListItemClick(@NonNull ListView l, @NonNull View v, int position, long id) {
+stopScan();
+BluetoothUtil.Device device = listItems.get(position-1);
+String address = device.getDevice().getAddress();
+if (getActivity() instanceof MainActivity) {
+((MainActivity) getActivity()).connectDevice(address);
+}
+}
+
+Do not touch anything else in DevicesFragment.java.
+Confirm the change and say "Task 3 complete".
+
+---
+
+## TASK 4 — Add Connect/Disconnect to SettingsFragment
+
+### 4A — Update fragment_settings.xml
 
 File: app/src/main/res/layout/fragment_settings.xml
 
-Find the Temperature row. It is a LinearLayout containing a TextView with
-android:text="Temperature" and a TextView with android:id="@+id/tempUnitToggle".
-Replace that entire LinearLayout with:
+Add this block as the VERY FIRST child inside the root LinearLayout,
+before everything else:
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CONNECTION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#02799A"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage your Bluetooth connection"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="12dp"/>
 
         <LinearLayout
+            android:id="@+id/connectRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/bg_card_white"
             android:padding="16dp"
-            android:layout_marginBottom="2dp">
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="8dp">
 
             <TextView
+                android:id="@+id/tvConnectAction"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Temperature"
+                android:text="Connect to Device"
                 android:textSize="14sp"
-                android:textColor="#333333"/>
+                android:textColor="#02799A"
+                android:textStyle="bold"/>
 
-            <Spinner
-                android:id="@+id/tempUnitSpinner"
-                android:layout_width="120dp"
+            <TextView
+                android:id="@+id/tvConnectStatus"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#02799A"/>
+                android:text="● Not connected"
+                android:textSize="12sp"
+                android:textColor="#AAAAAA"/>
         </LinearLayout>
 
-Find the Flow Rate row. It is a LinearLayout containing a TextView with
-android:text="Flow Rate" and a TextView with android:id="@+id/flowUnitToggle".
-Replace that entire LinearLayout with:
-
         <LinearLayout
+            android:id="@+id/disconnectRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:background="@drawable/bg_card_white"
             android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Flow Rate"
+                android:text="Disconnect"
                 android:textSize="14sp"
-                android:textColor="#333333"/>
-
-            <Spinner
-                android:id="@+id/flowUnitSpinner"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#02799A"/>
+                android:textColor="#E53935"
+                android:textStyle="bold"/>
         </LinearLayout>
-
-Also find the subtitle under the UNITS label. It currently says either
-"Tap to toggle between units" or "Select your preferred units".
-Make sure it says:
-android:text="Select your preferred units"
 
 Do not touch anything else in this file.
 
-### 2B — Replace SettingsFragment.java
+### 4B — Replace SettingsFragment.java entirely
 
-File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/SettingsFragment.java
+Replace the entire content of:
+app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/SettingsFragment.java
 
-Replace the entire file content with:
+With exactly this:
 
 package de.kai_morich.simple_bluetooth_le_terminal;
 
@@ -131,6 +291,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -148,6 +309,27 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
         prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+        // Connect row
+        TextView tvConnectStatus = view.findViewById(R.id.tvConnectStatus);
+        View connectRow = view.findViewById(R.id.connectRow);
+        View disconnectRow = view.findViewById(R.id.disconnectRow);
+
+        updateConnectionUI(tvConnectStatus, connectRow, disconnectRow);
+
+        connectRow.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment, new DevicesFragment(), "devices")
+                .addToBackStack(null)
+                .commit();
+        });
+
+        disconnectRow.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).disconnectDevice();
+            }
+            updateConnectionUI(tvConnectStatus, connectRow, disconnectRow);
+        });
 
         // Temp unit spinner
         Spinner tempSpinner = view.findViewById(R.id.tempUnitSpinner);
@@ -197,85 +379,69 @@ public class SettingsFragment extends Fragment {
 
         return view;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        View view = getView();
+        if (view != null) {
+            TextView tvConnectStatus = view.findViewById(R.id.tvConnectStatus);
+            View connectRow = view.findViewById(R.id.connectRow);
+            View disconnectRow = view.findViewById(R.id.disconnectRow);
+            updateConnectionUI(tvConnectStatus, connectRow, disconnectRow);
+        }
+    }
+
+    private void updateConnectionUI(TextView tvConnectStatus, View connectRow, View disconnectRow) {
+        boolean connected = getActivity() instanceof MainActivity
+                && ((MainActivity) getActivity()).isConnected();
+        if (connected) {
+            tvConnectStatus.setText("● Connected");
+            tvConnectStatus.setTextColor(0xFF43A047);
+            disconnectRow.setVisibility(View.VISIBLE);
+        } else {
+            tvConnectStatus.setText("● Not connected");
+            tvConnectStatus.setTextColor(0xFFAAAAAA);
+            disconnectRow.setVisibility(View.GONE);
+        }
+    }
 }
 
-Confirm both files were updated and say "Task 2 complete".
+Confirm both files were updated and say "Task 4 complete".
 
 ---
 
-## TASK 3 — Make flow unit setting actually change the dashboard display
-
-File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/TerminalFragment.java
-
-Do NOT touch: receive(), connect(), disconnect(), send(), onSerialConnect(),
-onSerialConnectError(), onSerialRead(), onSerialIoError(), setO2Alert(),
-onCreateOptionsMenu(), onOptionsItemSelected(), or any Bluetooth logic.
-
-Make these 4 surgical additions only:
-
-ADDITION 1 — Add this import with the existing imports:
-import android.preference.PreferenceManager;
-
-ADDITION 2 — Add this field with the existing private fields near the top of the class:
-private android.content.SharedPreferences prefs;
-
-ADDITION 3 — In onCreateView(), find this line:
-speedometerView = view.findViewById(R.id.speedometerView);
-Add this line directly after it:
-prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-
-ADDITION 4 — In parseAndUpdateUI(), find this exact line:
-tvFlow.setText(parts[1].replace("L/min", "").trim());
-Replace it with these 6 lines:
-float flowVal = Float.parseFloat(parts[1].replace("L/min", "").trim());
-String flowUnit = prefs.getString(SettingsFragment.KEY_FLOW_UNIT, "L");
-if (flowUnit.equals("mL")) {
-tvFlow.setText(String.valueOf((int)(flowVal * 1000)));
-} else {
-tvFlow.setText(String.valueOf(flowVal));
-}
-
-Also find this exact line:
-tvTemp.setText(parts[2].replace("C", "").trim());
-Replace it with these 7 lines:
-float tempVal = Float.parseFloat(parts[2].replace("C", "").trim());
-String tempUnit = prefs.getString(SettingsFragment.KEY_TEMP_UNIT, "C");
-if (tempUnit.equals("F")) {
-float tempF = (tempVal * 9f / 5f) + 32f;
-tvTemp.setText(String.valueOf((int)tempF));
-} else {
-tvTemp.setText(String.valueOf((int)tempVal));
-}
-
-Do not touch anything else in this file.
-Confirm all 4 additions and say "Task 3 complete".
-
----
-
-## TASK 4 — Final verification (read only, no changes)
+## TASK 5 — Final verification (read only, no changes)
 
 Read these files and confirm the following. Do not change anything.
 
-menu_bottom_nav.xml:
-- nav_home uses @android:drawable/ic_menu_home
-- nav_settings uses @android:drawable/ic_menu_preferences
-
-fragment_settings.xml:
-- tempUnitSpinner Spinner exists
-- flowUnitSpinner Spinner exists
-- No tempUnitToggle TextView exists
-- No flowUnitToggle TextView exists
-
-SettingsFragment.java:
-- No reference to tempUnitToggle or flowUnitToggle
-- Spinner and ArrayAdapter imports exist
-- KEY_TEMP_UNIT and KEY_FLOW_UNIT are defined
+MainActivity.java:
+- Uses show/hide pattern with showTab() method
+- Has connectDevice(String address) method
+- Has disconnectDevice() method
+- Has isConnected() method
+- No FragmentManager.OnBackStackChangedListener
 
 TerminalFragment.java:
-- PreferenceManager import exists
-- prefs field exists
-- parseAndUpdateUI reads KEY_FLOW_UNIT and converts mL if needed
-- parseAndUpdateUI reads KEY_TEMP_UNIT and converts F if needed
+- getArguments() has null check
+- connect() has null check for deviceAddress
+- connectTo(String address) public method exists
+- disconnectFromSettings() public method exists
+- isConnected() public method exists
+
+DevicesFragment.java:
+- onListItemClick calls MainActivity.connectDevice() instead of creating new TerminalFragment
+
+fragment_settings.xml:
+- connectRow exists
+- disconnectRow exists with visibility gone
+- tvConnectStatus exists
+
+SettingsFragment.java:
+- updateConnectionUI() method exists
+- onResume() refreshes connection status
+- connectRow opens DevicesFragment
+- disconnectRow calls MainActivity.disconnectDevice()
 
 If everything is correct say "All checks passed. Ready to build."
 If anything is wrong list the problems clearly.
