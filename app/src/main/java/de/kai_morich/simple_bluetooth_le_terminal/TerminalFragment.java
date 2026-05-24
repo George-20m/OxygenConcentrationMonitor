@@ -64,6 +64,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private boolean pendingNewline = false;
     private String newline = TextUtil.newline_crlf;
 
+    private boolean lastO2AlertState = false; // ← NEW: track O2 alert state to avoid spamming
+
     /*
      * Lifecycle
      */
@@ -278,9 +280,27 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                     tvTemp.setText(String.valueOf((int)tempVal));
                     tvTempUnit.setText("°C");
                 }
-                getActivity().runOnUiThread(() -> setO2Alert(o2Val < 80));
-                float finalO2 = o2Val;
-                getActivity().runOnUiThread(() -> { if (speedometerView != null) speedometerView.setValue(finalO2); });
+                
+                final float finalO2 = o2Val;
+                final float finalTemp = tempVal;
+                getActivity().runOnUiThread(() -> {
+                    if (speedometerView != null) speedometerView.setValue(finalO2);
+                    setO2Alert(finalO2 < 80);
+
+                    // Alert Log logic for Oxygen
+                    if (finalO2 < 80 && !lastO2AlertState) {
+                        AlertsFragment.addAlert("Low Oxygen Level", "Concentration dropped to " + (int)finalO2 + "%", 0);
+                        lastO2AlertState = true;
+                    } else if (finalO2 >= 80 && lastO2AlertState) {
+                        AlertsFragment.addAlert("Oxygen Normal", "Concentration recovered to " + (int)finalO2 + "%", 3);
+                        lastO2AlertState = false;
+                    }
+
+                    // Temperature alert
+                    if (finalTemp > 50) { // threshold for "hot"
+                         AlertsFragment.addAlert("High Temperature", "Device is running hot: " + (int)finalTemp + "°C", 1);
+                    }
+                });
             }
             if (parts.length >= 4) {
                 Matcher m = Pattern.compile("\\(?(\\d+)%\\)?").matcher(parts[3]);
@@ -366,6 +386,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         tvStatus.setText("Connected");           // ← NEW
         tvLive.setVisibility(View.VISIBLE);       // ← NEW
         connected = Connected.True;
+        AlertsFragment.addAlert("Device Connected", "Established connection to " + deviceAddress, 2);
     }
 
     @Override
@@ -373,6 +394,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         status("connection failed: " + e.getMessage());
         tvStatus.setText("Connection failed");    // ← NEW
         tvLive.setVisibility(View.GONE);          // ← NEW
+        AlertsFragment.addAlert("Connection Failed", e.getMessage(), 0);
         disconnect();
     }
 
@@ -392,6 +414,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         status("connection lost: " + e.getMessage());
         tvStatus.setText("Connection lost");      // ← NEW
         tvLive.setVisibility(View.GONE);          // ← NEW
+        AlertsFragment.addAlert("Connection Lost", "Bluetooth link disconnected", 0);
         disconnect();
     }
 
@@ -403,8 +426,10 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     }
 
     public void disconnectFromSettings() {
-        if (connected != Connected.False)
+        if (connected != Connected.False) {
             disconnect();
+            AlertsFragment.addAlert("Disconnected", "User disconnected the device", 3);
+        }
         deviceAddress = null;
         if (tvStatus != null) tvStatus.setText("Disconnected");
         if (tvLive != null) tvLive.setVisibility(View.GONE);

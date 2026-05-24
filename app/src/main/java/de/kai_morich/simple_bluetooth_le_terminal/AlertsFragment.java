@@ -38,12 +38,26 @@ public class AlertsFragment extends Fragment {
         if (alertLog.size() > 50) alertLog.remove(alertLog.size() - 1);
     }
 
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && getView() != null) {
+            refreshAlerts(getView());
+        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_alerts, container, false);
+        refreshAlerts(view);
+        return view;
+    }
+
+    private void refreshAlerts(View view) {
         LinearLayout container2 = view.findViewById(R.id.alertsContainer);
         container2.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(getContext());
 
         if (alertLog.isEmpty()) {
             View empty = inflater.inflate(R.layout.item_alert_empty, container2, false);
@@ -70,11 +84,15 @@ public class AlertsFragment extends Fragment {
                     default: indicatorColor = 0xFF888888; bgColor = 0xFFF5F5F5;
                 }
                 indicator.setBackgroundColor(indicatorColor);
-                card.setBackgroundColor(bgColor);
+                
+                android.graphics.drawable.GradientDrawable bgDrawable = 
+                    new android.graphics.drawable.GradientDrawable();
+                bgDrawable.setColor(bgColor);
+                bgDrawable.setCornerRadius(16f);
+                card.setBackground(bgDrawable);
 
                 container2.addView(item);
             }
         }
-        return view;
     }
 }
