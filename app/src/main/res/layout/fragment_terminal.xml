@@ -156,6 +156,7 @@
                         android:textColor="#000000"/>
 
                     <TextView
+                        android:id="@+id/tvFlowUnit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="L/min"
@@ -191,6 +192,7 @@
                         android:textColor="#000000"/>
 
                     <TextView
+                        android:id="@+id/tvTempUnit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="°C"

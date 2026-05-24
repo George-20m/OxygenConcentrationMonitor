@@ -1,285 +1,33 @@
-# OxyLife – Task List for Gemini CLI
+# OxyLife – TASKS.md (Round 4)
 # Read this entire file first, then execute each task in order.
-# After each task, confirm what you did before moving to the next one.
+# After each task confirm what you did before moving to the next one.
 # Do NOT skip ahead. Do NOT touch any file not mentioned in the task.
 # These files are COMPLETELY OFF LIMITS — never touch them:
 #   SerialService.java, SerialSocket.java, SerialListener.java,
-#   BluetoothUtil.java, TextUtil.java, Constants.java, DevicesFragment.java
+#   BluetoothUtil.java, TextUtil.java, Constants.java, DevicesFragment.java,
+#   SpeedometerView.java, AlertsFragment.java, AboutFragment.java
 
 ---
 
-## TASK 0 — Validate previous work (do this first, make no changes)
+## TASK 1 — Fix bottom nav icons to match the design
 
-Check that this file exists:
-  app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/SpeedometerView.java
+File: app/src/main/res/menu/menu_bottom_nav.xml
 
-Read it and confirm it contains a class called SpeedometerView that extends View
-and has a method called setValue(float val).
-
-If the file does NOT exist, tell me and stop. Do not continue to Task 1.
-If the file exists and is correct, say "SpeedometerView confirmed" and continue.
-
----
-
-## TASK 1 — App name and colors
-
-### 1A — strings.xml
-File: app/src/main/res/values/strings.xml
-
-Find this line:
-  <string name="app_name">O2 Monitor</string>
-
-Change it to:
-  <string name="app_name">OxyLife</string>
-
-Do not touch any other line in this file.
-
-### 1B — colors.xml
-File: app/src/main/res/values/colors.xml
-
-Find and replace these 3 lines:
-  <color name="colorPrimary">#378ADD</color>
-  <color name="colorPrimaryDark">#185FA5</color>
-  <color name="colorAccent">#378ADD</color>
-
-Change them to:
-  <color name="colorPrimary">#02799A</color>
-  <color name="colorPrimaryDark">#025f7a</color>
-  <color name="colorAccent">#02799A</color>
-
-Do not touch any other line in this file.
-
-### 1C — fragment_terminal.xml card color
-File: app/src/main/res/layout/fragment_terminal.xml
-
-Find this attribute:
-  app:cardBackgroundColor="#1565A8"
-
-Change it to:
-  app:cardBackgroundColor="#02799A"
-
-Do not touch any other line in this file.
-
-### 1D — TerminalFragment.java alert color
-File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/TerminalFragment.java
-
-Inside the method setO2Alert(), find the 2 occurrences of 0xFF1565A8
-and change both to 0xFF02799A.
-
-There are exactly 2 occurrences. Do not touch anything else in this file.
-
-When done with Task 1, show me the 4 changed values and say "Task 1 complete".
-
----
-
-## TASK 2 — Speedometer gauge in the O2 card
-
-### 2A — Update fragment_terminal.xml
-File: app/src/main/res/layout/fragment_terminal.xml
-
-Inside the CardView with android:id="@+id/o2Card",
-replace the entire inner LinearLayout (and all its children) with exactly this:
-
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:gravity="center_horizontal">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OXYGEN PURITY"
-        android:textSize="11sp"
-        android:textColor="#AACCEE"
-        android:layout_marginBottom="8dp"/>
-
-    <de.kai_morich.simple_bluetooth_le_terminal.SpeedometerView
-        android:id="@+id/speedometerView"
-        android:layout_width="220dp"
-        android:layout_height="130dp"/>
-
-    <TextView
-        android:id="@+id/tvO2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="--"
-        android:textSize="56sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:layout_marginTop="4dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="% O2 concentration"
-        android:textSize="11sp"
-        android:textColor="#AACCEE"
-        android:layout_marginBottom="4dp"/>
-</LinearLayout>
-
-Important: the hidden views at the bottom of this file must remain untouched:
-  receive_text, send_text, send_btn — do not remove or move them.
-
-### 2B — Update TerminalFragment.java
-File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/TerminalFragment.java
-
-Addition 1 — add this import with the existing imports at the top:
-  import de.kai_morich.simple_bluetooth_le_terminal.SpeedometerView;
-
-Addition 2 — add this field with the existing private fields near the top of the class:
-  private SpeedometerView speedometerView;
-
-Addition 3 — in onCreateView(), find this line:
-  o2Card = view.findViewById(R.id.o2Card);
-Add this line directly after it:
-  speedometerView = view.findViewById(R.id.speedometerView);
-
-Addition 4 — in parseAndUpdateUI(), find this exact line:
-  getActivity().runOnUiThread(() -> setO2Alert(o2Val < 80));
-Add these 2 lines directly after it:
-  float finalO2 = o2Val;
-  getActivity().runOnUiThread(() -> { if (speedometerView != null) speedometerView.setValue(finalO2); });
-
-Do not touch parseAndUpdateUI() logic, receive(), connect(), disconnect(),
-or any Bluetooth-related code.
-
-When done with Task 2, show me the 4 additions and say "Task 2 complete".
-
----
-
-## TASK 3 — About screen
-
-### 3A — Create AboutFragment.java
-Create this new file:
-  app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/AboutFragment.java
-
-With this exact content:
-
-package de.kai_morich.simple_bluetooth_le_terminal;
-
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
-public class AboutFragment extends Fragment {
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_about, container, false);
-    }
-}
-
-### 3B — Create fragment_about.xml
-Create this new file:
-  app/src/main/res/layout/fragment_about.xml
-
-With this exact content:
-
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="OxyLife"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="#02799A"
-            android:gravity="center"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Portable Oxygen Concentrator Monitor"
-            android:textSize="14sp"
-            android:textColor="#888888"
-            android:gravity="center"
-            android:layout_marginBottom="32dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="About This App"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="OxyLife connects to your portable oxygen concentrator via Bluetooth and displays real-time data including oxygen purity, flow rate, temperature, and battery level. Designed to give patients and caregivers immediate visibility into device performance."
-            android:textSize="14sp"
-            android:textColor="#444444"
-            android:lineSpacingMultiplier="1.5"
-            android:layout_marginBottom="24dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Inspiration"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Built on the open-source SimpleBluetoothLeTerminal by Kai Morich, adapted for real-time respiratory monitoring."
-            android:textSize="14sp"
-            android:textColor="#444444"
-            android:lineSpacingMultiplier="1.5"
-            android:layout_marginBottom="32dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Version 1.0"
-            android:textSize="12sp"
-            android:textColor="#AAAAAA"
-            android:gravity="center"/>
-
-    </LinearLayout>
-</ScrollView>
-
-When done with Task 3, confirm both files were created and say "Task 3 complete".
-
----
-
-## TASK 4 — Bottom navigation bar
-
-### 4A — Create menu_bottom_nav.xml
-Create this new file:
-  app/src/main/res/menu/menu_bottom_nav.xml
-
-With this exact content:
+Replace the entire content with:
 
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_home"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@android:drawable/ic_menu_home"
         android:title="Home"/>
     <item
+        android:id="@+id/nav_alerts"
+        android:icon="@android:drawable/ic_dialog_alert"
+        android:title="Alerts"/>
+    <item
         android:id="@+id/nav_settings"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:icon="@android:drawable/ic_menu_preferences"
         android:title="Settings"/>
     <item
         android:id="@+id/nav_about"
@@ -287,142 +35,247 @@ With this exact content:
         android:title="About"/>
 </menu>
 
-### 4B — Replace activity_main.xml
-File: app/src/main/res/layout/activity_main.xml
-
-Replace the entire file content with exactly this:
-
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
-
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
-
-    <FrameLayout
-        android:id="@+id/fragment"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_nav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemIconTint="#02799A"
-        app:itemTextColor="#02799A"
-        app:menu="@menu/menu_bottom_nav"/>
-
-</LinearLayout>
-
-### 4C — Replace MainActivity.java
-File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/MainActivity.java
-
-Replace the entire file content with exactly this:
-
-package de.kai_morich.simple_bluetooth_le_terminal;
-
-import android.os.Bundle;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportFragmentManager().addOnBackStackChangedListener(this);
-        if (savedInstanceState == null)
-            getSupportFragmentManager().beginTransaction().add(R.id.fragment, new DevicesFragment(), "devices").commit();
-        else
-            onBackStackChanged();
-
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_home) {
-                getSupportFragmentManager().popBackStack("devices", 0);
-                return true;
-            } else if (id == R.id.nav_about) {
-                Fragment current = getSupportFragmentManager().findFragmentByTag("about");
-                if (current == null || !current.isVisible()) {
-                    getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment, new AboutFragment(), "about")
-                        .addToBackStack(null)
-                        .commit();
-                }
-                return true;
-            } else if (id == R.id.nav_settings) {
-                android.widget.Toast.makeText(this, "Settings coming soon", android.widget.Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            return false;
-        });
-    }
-
-    @Override
-    public void onBackStackChanged() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 0);
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
-    }
-}
-
-When done with Task 4, confirm all 3 files were updated and say "Task 4 complete".
+Do not touch any other file.
+Confirm the change and say "Task 1 complete".
 
 ---
 
-## TASK 5 — Final verification (read only, no changes)
+## TASK 2 — Fix SettingsFragment to use Spinners instead of TextViews
 
-Read these files and check for the following. Report any problem found.
-Do not change anything in this task.
+The current SettingsFragment.java still uses tempUnitToggle and flowUnitToggle TextViews.
+The current fragment_settings.xml also still has these as TextViews.
+We need to replace both with Spinners.
 
-Check MainActivity.java:
-- Package is de.kai_morich.simple_bluetooth_le_terminal
-- Imports AboutFragment and BottomNavigationView
-- References R.id.fragment, R.id.toolbar, R.id.bottom_nav
+### 2A — Update fragment_settings.xml
 
-Check TerminalFragment.java:
-- Imports SpeedometerView
-- Has field: private SpeedometerView speedometerView
-- onCreateView binds speedometerView
-- parseAndUpdateUI calls speedometerView.setValue()
-- setO2Alert() uses color 0xFF02799A not 0xFF1565A8
+File: app/src/main/res/layout/fragment_settings.xml
 
-Check fragment_terminal.xml:
-- o2Card CardView has app:cardBackgroundColor="#02799A"
-- SpeedometerView tag exists with id speedometerView
-- tvO2 TextView still exists inside the o2Card
-- Hidden views receive_text, send_text, send_btn are still present at the bottom
+Find the Temperature row. It is a LinearLayout containing a TextView with
+android:text="Temperature" and a TextView with android:id="@+id/tempUnitToggle".
+Replace that entire LinearLayout with:
 
-Check activity_main.xml:
-- Contains Toolbar with id toolbar
-- Contains FrameLayout with id fragment
-- Contains BottomNavigationView with id bottom_nav
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_white"
+            android:padding="16dp"
+            android:layout_marginBottom="2dp">
 
-Check strings.xml:
-- app_name is OxyLife
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Temperature"
+                android:textSize="14sp"
+                android:textColor="#333333"/>
 
-Check colors.xml:
-- colorPrimary is #02799A
+            <Spinner
+                android:id="@+id/tempUnitSpinner"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#02799A"/>
+        </LinearLayout>
 
-If everything is correct say "All checks passed. OxyLife is ready to build."
-If anything is wrong, list the problems clearly.
+Find the Flow Rate row. It is a LinearLayout containing a TextView with
+android:text="Flow Rate" and a TextView with android:id="@+id/flowUnitToggle".
+Replace that entire LinearLayout with:
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_white"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Flow Rate"
+                android:textSize="14sp"
+                android:textColor="#333333"/>
+
+            <Spinner
+                android:id="@+id/flowUnitSpinner"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#02799A"/>
+        </LinearLayout>
+
+Also find the subtitle under the UNITS label. It currently says either
+"Tap to toggle between units" or "Select your preferred units".
+Make sure it says:
+android:text="Select your preferred units"
+
+Do not touch anything else in this file.
+
+### 2B — Replace SettingsFragment.java
+
+File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/SettingsFragment.java
+
+Replace the entire file content with:
+
+package de.kai_morich.simple_bluetooth_le_terminal;
+
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.Switch;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+public class SettingsFragment extends Fragment {
+
+    private SharedPreferences prefs;
+
+    public static final String KEY_TEMP_UNIT = "temp_unit";
+    public static final String KEY_FLOW_UNIT = "flow_unit";
+    public static final String KEY_KEEP_SCREEN_ON = "keep_screen_on";
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_settings, container, false);
+        prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+        // Temp unit spinner
+        Spinner tempSpinner = view.findViewById(R.id.tempUnitSpinner);
+        ArrayAdapter<String> tempAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, new String[]{"°C", "°F"});
+        tempAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        tempSpinner.setAdapter(tempAdapter);
+        tempSpinner.setSelection(prefs.getString(KEY_TEMP_UNIT, "C").equals("C") ? 0 : 1);
+        tempSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            boolean first = true;
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v2, int position, long id) {
+                if (first) { first = false; return; }
+                prefs.edit().putString(KEY_TEMP_UNIT, position == 0 ? "C" : "F").apply();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Flow unit spinner
+        Spinner flowSpinner = view.findViewById(R.id.flowUnitSpinner);
+        ArrayAdapter<String> flowAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, new String[]{"L/min", "mL/min"});
+        flowAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        flowSpinner.setAdapter(flowAdapter);
+        flowSpinner.setSelection(prefs.getString(KEY_FLOW_UNIT, "L").equals("L") ? 0 : 1);
+        flowSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            boolean first = true;
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v2, int position, long id) {
+                if (first) { first = false; return; }
+                prefs.edit().putString(KEY_FLOW_UNIT, position == 0 ? "L" : "mL").apply();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Keep screen on
+        Switch screenSwitch = view.findViewById(R.id.keepScreenSwitch);
+        screenSwitch.setChecked(prefs.getBoolean(KEY_KEEP_SCREEN_ON, false));
+        screenSwitch.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean(KEY_KEEP_SCREEN_ON, isChecked).apply();
+            if (isChecked) {
+                requireActivity().getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } else {
+                requireActivity().getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+        });
+
+        return view;
+    }
+}
+
+Confirm both files were updated and say "Task 2 complete".
+
+---
+
+## TASK 3 — Make flow unit setting actually change the dashboard display
+
+File: app/src/main/java/de/kai_morich/simple_bluetooth_le_terminal/TerminalFragment.java
+
+Do NOT touch: receive(), connect(), disconnect(), send(), onSerialConnect(),
+onSerialConnectError(), onSerialRead(), onSerialIoError(), setO2Alert(),
+onCreateOptionsMenu(), onOptionsItemSelected(), or any Bluetooth logic.
+
+Make these 4 surgical additions only:
+
+ADDITION 1 — Add this import with the existing imports:
+import android.preference.PreferenceManager;
+
+ADDITION 2 — Add this field with the existing private fields near the top of the class:
+private android.content.SharedPreferences prefs;
+
+ADDITION 3 — In onCreateView(), find this line:
+speedometerView = view.findViewById(R.id.speedometerView);
+Add this line directly after it:
+prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+ADDITION 4 — In parseAndUpdateUI(), find this exact line:
+tvFlow.setText(parts[1].replace("L/min", "").trim());
+Replace it with these 6 lines:
+float flowVal = Float.parseFloat(parts[1].replace("L/min", "").trim());
+String flowUnit = prefs.getString(SettingsFragment.KEY_FLOW_UNIT, "L");
+if (flowUnit.equals("mL")) {
+tvFlow.setText(String.valueOf((int)(flowVal * 1000)));
+} else {
+tvFlow.setText(String.valueOf(flowVal));
+}
+
+Also find this exact line:
+tvTemp.setText(parts[2].replace("C", "").trim());
+Replace it with these 7 lines:
+float tempVal = Float.parseFloat(parts[2].replace("C", "").trim());
+String tempUnit = prefs.getString(SettingsFragment.KEY_TEMP_UNIT, "C");
+if (tempUnit.equals("F")) {
+float tempF = (tempVal * 9f / 5f) + 32f;
+tvTemp.setText(String.valueOf((int)tempF));
+} else {
+tvTemp.setText(String.valueOf((int)tempVal));
+}
+
+Do not touch anything else in this file.
+Confirm all 4 additions and say "Task 3 complete".
+
+---
+
+## TASK 4 — Final verification (read only, no changes)
+
+Read these files and confirm the following. Do not change anything.
+
+menu_bottom_nav.xml:
+- nav_home uses @android:drawable/ic_menu_home
+- nav_settings uses @android:drawable/ic_menu_preferences
+
+fragment_settings.xml:
+- tempUnitSpinner Spinner exists
+- flowUnitSpinner Spinner exists
+- No tempUnitToggle TextView exists
+- No flowUnitToggle TextView exists
+
+SettingsFragment.java:
+- No reference to tempUnitToggle or flowUnitToggle
+- Spinner and ArrayAdapter imports exist
+- KEY_TEMP_UNIT and KEY_FLOW_UNIT are defined
+
+TerminalFragment.java:
+- PreferenceManager import exists
+- prefs field exists
+- parseAndUpdateUI reads KEY_FLOW_UNIT and converts mL if needed
+- parseAndUpdateUI reads KEY_TEMP_UNIT and converts F if needed
+
+If everything is correct say "All checks passed. Ready to build."
+If anything is wrong list the problems clearly.

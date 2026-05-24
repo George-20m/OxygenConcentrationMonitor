@@ -27,6 +27,15 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
             if (id == R.id.nav_home) {
                 getSupportFragmentManager().popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 return true;
+            } else if (id == R.id.nav_alerts) {
+                Fragment current = getSupportFragmentManager().findFragmentByTag("alerts");
+                if (current == null || !current.isVisible()) {
+                    getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment, new AlertsFragment(), "alerts")
+                        .addToBackStack(null)
+                        .commit();
+                }
+                return true;
             } else if (id == R.id.nav_about) {
                 Fragment current = getSupportFragmentManager().findFragmentByTag("about");
                 if (current == null || !current.isVisible()) {
@@ -37,7 +46,13 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
                 }
                 return true;
             } else if (id == R.id.nav_settings) {
-                android.widget.Toast.makeText(this, "Settings coming soon", android.widget.Toast.LENGTH_SHORT).show();
+                Fragment current = getSupportFragmentManager().findFragmentByTag("settings");
+                if (current == null || !current.isVisible()) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment, new SettingsFragment(), "settings")
+                            .addToBackStack(null)
+                            .commit();
+                }
                 return true;
             }
             return false;

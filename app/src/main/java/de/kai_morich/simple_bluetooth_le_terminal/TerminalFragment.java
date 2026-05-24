@@ -23,6 +23,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.preference.PreferenceManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,10 +51,12 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private TextUtil.HexWatcher hexWatcher;
 
     // ← NEW: UI elements
-    private TextView tvO2, tvFlow, tvTemp, tvStatus, tvLive, tvBattery;
+    private TextView tvO2, tvFlow, tvTemp, tvFlowUnit, tvTempUnit, tvStatus, tvLive, tvBattery;
     private CardView o2Card;
     private SpeedometerView speedometerView;
     private StringBuilder dataBuffer = new StringBuilder();
+    private String lastLine = "";
+    private android.content.SharedPreferences prefs;
 
     private Connected connected = Connected.False;
     private boolean initialStart = true;
@@ -159,8 +162,16 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         tvStatus = view.findViewById(R.id.tvStatus);
         tvLive   = view.findViewById(R.id.tvLive);
         tvBattery = view.findViewById(R.id.tvBattery);
+        tvFlowUnit = view.findViewById(R.id.tvFlowUnit);
+        tvTempUnit = view.findViewById(R.id.tvTempUnit);
         o2Card   = view.findViewById(R.id.o2Card);
         speedometerView = view.findViewById(R.id.speedometerView);
+        prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        prefs.registerOnSharedPreferenceChangeListener((p, key) -> {
+            if (!lastLine.isEmpty()) {
+                getActivity().runOnUiThread(() -> parseAndUpdateUI(lastLine));
+            }
+        });
 
         return view;
     }
@@ -243,8 +254,25 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             if (parts.length >= 3) {
                 float o2Val = Float.parseFloat(parts[0].replace("%Vol", "").trim());
                 tvO2.setText(String.valueOf((int)o2Val));
-                tvFlow.setText(parts[1].replace("L/min", "").trim());
-                tvTemp.setText(parts[2].replace("C", "").trim());
+                float flowVal = Float.parseFloat(parts[1].replace("L/min", "").trim());
+                String flowUnit = prefs.getString(SettingsFragment.KEY_FLOW_UNIT, "L");
+                if (flowUnit.equals("mL")) {
+                    tvFlow.setText(String.valueOf((int)(flowVal * 1000)));
+                    tvFlowUnit.setText("mL/min");
+                } else {
+                    tvFlow.setText(String.valueOf(flowVal));
+                    tvFlowUnit.setText("L/min");
+                }
+                float tempVal = Float.parseFloat(parts[2].replace("C", "").trim());
+                String tempUnit = prefs.getString(SettingsFragment.KEY_TEMP_UNIT, "C");
+                if (tempUnit.equals("F")) {
+                    float tempF = (tempVal * 9f / 5f) + 32f;
+                    tvTemp.setText(String.valueOf((int)tempF));
+                    tvTempUnit.setText("°F");
+                } else {
+                    tvTemp.setText(String.valueOf((int)tempVal));
+                    tvTempUnit.setText("°C");
+                }
                 getActivity().runOnUiThread(() -> setO2Alert(o2Val < 80));
                 float finalO2 = o2Val;
                 getActivity().runOnUiThread(() -> { if (speedometerView != null) speedometerView.setValue(finalO2); });
@@ -294,7 +322,10 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                     int idx = dataBuffer.indexOf("\n");
                     String line = dataBuffer.substring(0, idx).trim();
                     dataBuffer.delete(0, idx + 1);
-                    if (!line.isEmpty()) parseAndUpdateUI(line);
+                    if (!line.isEmpty()) {
+                        lastLine = line;
+                        parseAndUpdateUI(line);
+                    }
                 }
             }
         }

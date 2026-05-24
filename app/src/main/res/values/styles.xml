@@ -11,4 +11,7 @@
         <item name="android:background">#FFFFFF</item>
         <item name="android:cacheColorHint">#FFFFFF</item>
     </style>
-</resources>
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">#02799A</item>
+    </style>
+</resources>    
